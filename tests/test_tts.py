@@ -10,10 +10,10 @@ from nnserve.tts import encode_audio, resolve_speaker, resolve_voice
 
 
 def test_openai_voices_map_to_kitten_voices():
-    assert resolve_voice("alloy") == "Bella"
-    assert resolve_voice({"id": "nova"}) == "Rosie"
-    assert resolve_voice("Bruno") == "Bruno"
-    assert resolve_voice("") == "Bruno"
+    assert resolve_voice("alloy") == "eleanor"
+    assert resolve_voice({"id": "nova"}) == "eleanor"
+    assert resolve_voice("Eleanor") == "Eleanor"
+    assert resolve_voice("otis") == "otis"
 
 
 def test_qwen3_openai_voices_map_to_native_speakers():

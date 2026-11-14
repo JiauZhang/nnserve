@@ -47,22 +47,31 @@ class Engine:
     def from_model(cls, model, *, cache_factory=None, device=None):
         return cls(model, cache_factory=cache_factory, device=device)
 
-    def _default_cache_factory(self):
+    def _default_cache_factory(self, capacity):
         root = getattr(self.model, "backbone", self.model)
         layers = getattr(root, "layers", None)
         if layers is None:
             raise EngineError("cache_factory is required for models without a layers attribute")
         layer_types = getattr(root, "layer_types", None)
         if layer_types is None:
-            return Cache([KVCache() for _ in layers])
+            return Cache([KVCache(capacity) for _ in layers])
         config = getattr(root, "config", None)
         window_size = getattr(config, "sliding_window", None)
         state_size = getattr(config, "conv_L_cache", 3)
-        return Cache.from_layer_types(layer_types, window_size=window_size, state_size=state_size)
+        return Cache.from_layer_types(layer_types, capacity=capacity, window_size=window_size, state_size=state_size)
 
-    def create_session(self, policy_version=None) -> Session:
+    def _default_capacity(self):
+        root = getattr(self.model, "backbone", self.model)
+        config = getattr(root, "config", None)
+        for name in ("max_position_embeddings", "n_ctx"):
+            value = getattr(config, name, None)
+            if value is not None:
+                return int(value)
+        raise EngineError("capacity is required for models without a context length config")
+
+    def create_session(self, capacity=None, policy_version=None) -> Session:
         session = Session(
-            cache=self.cache_factory(),
+            cache=self.cache_factory(self._default_capacity() if capacity is None else capacity),
             policy_version=self.policy_version if policy_version is None else policy_version,
         )
         self._sessions.add(session)

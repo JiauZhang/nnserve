@@ -65,9 +65,10 @@ class ChatHandler:
 
     def respond(self, request, entry):
         input_ids = self.tokenizer.encode(self._prompt(request)).ids
-        session = self.engine.create_session()
+        params = self._params(request)
+        session = self.engine.create_session(capacity=len(input_ids) + params.max_new_tokens)
         try:
-            result = self.engine.generate(session, input_ids, self._params(request))
+            result = self.engine.generate(session, input_ids, params)
             text = self.tokenizer.decode(result.tokens, skip_special_tokens=True)
         finally:
             self.engine.close_session(session)
@@ -76,11 +77,12 @@ class ChatHandler:
 
     def stream(self, request, entry):
         input_ids = self.tokenizer.encode(self._prompt(request)).ids
-        session = self.engine.create_session()
+        params = self._params(request)
+        session = self.engine.create_session(capacity=len(input_ids) + params.max_new_tokens)
         generated = []
         decoded = ""
         try:
-            for chunk in self.engine.iter_generate(session, input_ids, self._params(request)):
+            for chunk in self.engine.iter_generate(session, input_ids, params):
                 if chunk.token is not None:
                     generated.append(chunk.token)
                     text = self.tokenizer.decode(generated, skip_special_tokens=True)

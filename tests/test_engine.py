@@ -36,7 +36,7 @@ def make_engine(model=None):
 
 def test_generate_stops_at_eos():
     engine = make_engine()
-    session = engine.create_session()
+    session = engine.create_session(capacity=16)
     params = SamplingParams(max_new_tokens=10, eos_token_ids=(3,))
 
     result = engine.generate(session, [1], params)
@@ -48,7 +48,7 @@ def test_generate_stops_at_eos():
 
 def test_generate_respects_the_length_limit():
     engine = make_engine()
-    session = engine.create_session()
+    session = engine.create_session(capacity=16)
 
     result = engine.generate(session, [0], SamplingParams(max_new_tokens=4))
 
@@ -59,12 +59,12 @@ def test_generate_respects_the_length_limit():
 
 def test_sampling_is_reproducible_with_a_seed():
     engine = make_engine(UniformModel())
-    session = engine.create_session()
+    session = engine.create_session(capacity=16)
     params = SamplingParams(max_new_tokens=8, do_sample=True, seed=7)
 
     first = engine.generate(session, [0], params)
     session.close()
-    second_session = engine.create_session()
+    second_session = engine.create_session(capacity=16)
     second = engine.generate(second_session, [0], params)
 
     assert first.tokens == second.tokens
@@ -82,7 +82,7 @@ def test_score_returns_one_logprob_per_target_token():
 
 def test_updating_weights_invalidates_session_caches():
     engine = make_engine()
-    session = engine.create_session()
+    session = engine.create_session(capacity=16)
     engine.generate(session, [0], SamplingParams(max_new_tokens=2))
     assert session.cache.get_seq_length() > 0
 
@@ -96,7 +96,7 @@ def test_updating_weights_invalidates_session_caches():
 
 def test_closed_session_is_rejected():
     engine = make_engine()
-    session = engine.create_session()
+    session = engine.create_session(capacity=16)
     engine.close_session(session)
 
     try:
@@ -118,7 +118,7 @@ def test_engine_does_not_import_the_server_stack():
 
 def test_sleep_and_wake_keep_the_engine_usable():
     engine = make_engine()
-    session = engine.create_session()
+    session = engine.create_session(capacity=16)
     engine.generate(session, [0], SamplingParams(max_new_tokens=2))
 
     engine.sleep()

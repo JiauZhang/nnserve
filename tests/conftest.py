@@ -24,6 +24,9 @@ def pytest_addoption(parser):
         "--qwen3-tts-model-path", action="store", default=None, help="path to a prepared Qwen3-TTS weight repository"
     )
     parser.addoption("--asr-model-path", action="store", default=None, help="path to a prepared ASR weight repository")
+    parser.addoption(
+        "--qwen3-asr-model-path", action="store", default=None, help="path to a prepared Qwen3-ASR weight repository"
+    )
 
 
 @pytest.fixture(scope="session")
@@ -44,6 +47,11 @@ def qwen3_tts_model_path(request):
 @pytest.fixture(scope="session")
 def asr_model_path(request):
     return request.config.getoption("--asr-model-path")
+
+
+@pytest.fixture(scope="session")
+def qwen3_asr_model_path(request):
+    return request.config.getoption("--qwen3-asr-model-path")
 
 
 class FakeResponsesHandler:

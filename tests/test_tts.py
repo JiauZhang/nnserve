@@ -66,7 +66,8 @@ def test_kitten_tts_through_the_http_api(tts_model_path):
     assert len(response.content) > 1000
 
 
-def test_qwen3_tts_through_the_http_api(qwen3_tts_model_path):
+@pytest.mark.parametrize("language,text", [("english", "Hello."), ("chinese", "你好，世界。")])
+def test_qwen3_tts_through_the_http_api(qwen3_tts_model_path, language, text):
     if qwen3_tts_model_path is None:
         pytest.skip("--qwen3-tts-model-path required for the end-to-end Qwen3-TTS check")
 
@@ -78,9 +79,9 @@ def test_qwen3_tts_through_the_http_api(qwen3_tts_model_path):
         "/v1/audio/speech",
         json={
             "model": "qwen3-tts",
-            "input": "Hello.",
+            "input": text,
             "voice": "alloy",
-            "language": "english",
+            "language": language,
             "response_format": "wav",
         },
     )

@@ -14,6 +14,18 @@ The `pdf` extra adds page rendering for PDF inputs:
 pip install "nnserve[pdf]"
 ```
 
+Kitten TTS needs its text-frontend dependencies:
+
+```shell
+pip install "nnserve[kitten]"
+```
+
+Qwen3-ASR needs the Whisper feature extractor:
+
+```shell
+pip install "nnserve[asr]"
+```
+
 ## Sponsor
 
 <table align="center">

@@ -1,6 +1,7 @@
 import json
 import os
 import threading
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -39,25 +40,25 @@ def resolve_voice(value):
 class KittenTtsHandler:
     def __init__(self, entry):
         self.path = entry.path
-        manifest = json.loads(open(os.path.join(entry.path, "nnm_weights.json")).read())
-        self.multilingual = "kitten_tts" in manifest.get("modules", {})
-        self.config = KittenTTS.load_config(
-            entry.path, manifest.get("modules", {}).get("kitten_tts") or next(iter(manifest["modules"].values()))
-        )
+        manifest = json.loads((Path(entry.path) / "nnm_weights.json").read_text())
+        modules = manifest.get("modules", {})
+        self.multilingual = "kitten_tts" in modules
+        module = modules.get("kitten_tts") or (next(iter(modules.values())) if modules else None)
+        self.config = KittenTTS.load_config(entry.path, module)
         self.sample_rate = int(self.config.sample_rate)
-        self.vocab = json.loads(open(os.path.join(entry.path, "vocab.json"), encoding="utf-8").read())
+        self.vocab = json.loads((Path(entry.path) / "vocab.json").read_text(encoding="utf-8"))
         self.languages = sorted(
             f[len("voices_") : -len(".npz")] for f in os.listdir(entry.path) if f.startswith("voices_") and f.endswith(".npz")
         )
         self._packs = {}
         self._voice_index = {}
         for lang in sorted(self.languages, key=lambda code: (code != DEFAULT_LANGUAGE, code)):
-            packs = np.load(os.path.join(entry.path, f"voices_{lang}.npz"))
+            packs = np.load(Path(entry.path) / f"voices_{lang}.npz")
             self._packs[lang] = {k: packs[k] for k in packs.files}
             for key in packs.files:
                 self._voice_index.setdefault(key.casefold(), (lang, key))
-        bart = BartForConditionalGeneration.from_pretrained(os.path.join(entry.path, "g2p", "g2p_bart_en_us")).eval()
-        self.frontend = Frontend(self.config.phonemizer, self.vocab, os.path.join(entry.path, "g2p"), bart)
+        bart = BartForConditionalGeneration.from_pretrained(str(Path(entry.path) / "g2p" / "g2p_bart_en_us")).eval()
+        self.frontend = Frontend(self.config.phonemizer, self.vocab, str(Path(entry.path) / "g2p"), bart)
         self._models = {}
         self.lock = threading.Lock()
 

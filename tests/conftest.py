@@ -97,7 +97,7 @@ class FakeAsrHandler:
         )
 
 
-def write_manifest(path, task, capabilities):
+def write_manifest(path, task, capabilities, **extra):
     path.mkdir()
     (path / "nnm_weights.json").write_text(
         json.dumps(
@@ -107,6 +107,7 @@ def write_manifest(path, task, capabilities):
                 "weights": ["model.safetensors"],
                 "task": task,
                 "capabilities": capabilities,
+                **extra,
             }
         )
     )

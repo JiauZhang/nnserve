@@ -93,7 +93,7 @@ class IndraOcrPipeline:
         for group in self.script_groups:
             key = f"vocab_{group}"
             if group != "base" and key in self.meta:
-                model = IndraOCRRecognition.from_pretrained(self.path, variant=group).to(self.device).eval()
+                model = IndraOCRRecognition.from_pretrained(self.path, config={"variant": group}).to(self.device).eval()
                 self.groups[group] = (model, Vocab.from_json(self.meta[key]))
 
         params = self.meta.get("lm_params", {})

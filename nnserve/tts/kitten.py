@@ -65,7 +65,7 @@ class KittenTtsHandler:
     def _model(self, lang):
         if lang not in self._models:
             variant = None if self.multilingual else lang
-            self._models[lang] = KittenTTS.from_pretrained(self.path, variant=variant).eval()
+            self._models[lang] = KittenTTS.from_pretrained(self.path, config={"variant": variant}).eval()
         return self._models[lang]
 
     def _resolve(self, voice):
